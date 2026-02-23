@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Petnames</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      width: 360px;
+      min-height: 400px;
+      max-height: 500px;
+      background: #0d0d1a;
+      color: #e8e8e8;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 14px;
+    }
+
+    header {
+      background: linear-gradient(135deg, #4a1a6b, #2d1b4e);
+      padding: 16px 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    h1 {
+      font-size: 18px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    h1 span {
+      opacity: 0.6;
+      font-weight: 400;
+    }
+
+    .subtitle {
+      color: #a8a8b8;
+      font-size: 12px;
+      margin-top: 4px;
+    }
+
+    .stats {
+      display: flex;
+      gap: 16px;
+      padding: 12px 20px;
+      background: #1a1a2e;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .stat {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .stat-value {
+      font-size: 20px;
+      font-weight: 600;
+      color: #8b5cf6;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .search-box {
+      padding: 12px 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 10px 12px;
+      background: #1a1a2e;
+      border: 1px solid #333;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 13px;
+      outline: none;
+    }
+
+    .search-input:focus {
+      border-color: #4a1a6b;
+    }
+
+    .search-input::placeholder {
+      color: #666;
+    }
+
+    .petname-list {
+      overflow-y: auto;
+      max-height: 280px;
+      padding: 8px 0;
+    }
+
+    .petname-item {
+      display: flex;
+      align-items: center;
+      padding: 10px 20px;
+      cursor: pointer;
+      transition: background 0.1s;
+    }
+
+    .petname-item:hover {
+      background: rgba(139, 92, 246, 0.1);
+    }
+
+    .petname-item-name {
+      flex: 1;
+      font-weight: 500;
+    }
+
+    .petname-item-name::before {
+      content: '~';
+      opacity: 0.5;
+      margin-right: 2px;
+    }
+
+    .petname-item-handle {
+      color: #0085ff;
+      font-size: 12px;
+    }
+
+    .petname-item-remove {
+      color: #ff6b6b;
+      opacity: 0;
+      padding: 4px 8px;
+      margin-left: 8px;
+      border-radius: 4px;
+      transition: all 0.1s;
+    }
+
+    .petname-item:hover .petname-item-remove {
+      opacity: 0.6;
+    }
+
+    .petname-item-remove:hover {
+      opacity: 1 !important;
+      background: rgba(255, 107, 107, 0.2);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: #666;
+    }
+
+    .empty-state-icon {
+      font-size: 32px;
+      margin-bottom: 12px;
+    }
+
+    .empty-state-text {
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    footer {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 12px 20px;
+      background: #0d0d1a;
+      border-top: 1px solid rgba(255,255,255,0.05);
+      text-align: center;
+    }
+
+    footer a {
+      color: #8b5cf6;
+      text-decoration: none;
+      font-size: 12px;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    .theory-link {
+      display: block;
+      margin-top: 8px;
+      color: #666;
+      font-size: 11px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>~ Petnames <span>for Bluesky</span></h1>
+    <div class="subtitle">Your namespace. Your mental model.</div>
+  </header>
+
+  <div class="stats">
+    <div class="stat">
+      <span class="stat-value" id="count">0</span>
+      <span class="stat-label">Petnames</span>
+    </div>
+    <div class="stat">
+      <span class="stat-value" id="resolves">0</span>
+      <span class="stat-label">DIDs Cached</span>
+    </div>
+  </div>
+
+  <div class="search-box">
+    <input type="text" class="search-input" id="search" placeholder="Search petnames...">
+  </div>
+
+  <div class="petname-list" id="list">
+    <!-- Populated by JS -->
+  </div>
+
+  <footer>
+    <a href="https://bsky.app" target="_blank">Open Bluesky</a>
+    <a href="https://www.skyhunter.com/marcs/petnames/IntroPetNames.html" target="_blank" class="theory-link">
+      What are petnames?
+    </a>
+  </footer>
+
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,27 @@
+{
+  "manifest_version": 3,
+  "name": "Petnames for Bluesky",
+  "version": "1.0.0",
+  "description": "Assign personal names to Bluesky users. Your namespace, your mental model.",
+  "permissions": ["storage"],
+  "host_permissions": ["https://bsky.app/*", "https://public.api.bsky.app/*"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "48": "icon48.png",
+      "128": "icon128.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://bsky.app/*"],
+      "js": ["content.js"],
+      "css": ["styles.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "icons": {
+    "48": "icon48.png",
+    "128": "icon128.png"
+  }
+}
