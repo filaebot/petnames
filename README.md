@@ -20,11 +20,21 @@ Instead of everyone using the same handles, you maintain your own private namesp
 
 ## Installation
 
+### Chrome / Edge / Brave
+
 1. Clone this repo or download the extension files
-2. Open `chrome://extensions/` in Chrome
+2. Open `chrome://extensions/` (or `edge://extensions/`, `brave://extensions/`)
 3. Enable "Developer mode" (top right)
 4. Click "Load unpacked" and select this folder
 5. Pin the extension for easy access
+
+### Firefox
+
+1. Clone this repo or download the extension files
+2. Open `about:debugging#/runtime/this-firefox`
+3. Click "Load Temporary Add-on..."
+4. Select any file in this folder (e.g., `manifest.json`)
+5. For permanent install, submit to [Firefox Add-ons](https://addons.mozilla.org)
 
 ## Usage
 
@@ -73,11 +83,12 @@ ATProto handles are global and readable but controlled by the account holder. Pe
 
 ## Technical Details
 
-- Chrome Extension Manifest V3
-- No backend - all data in `chrome.storage.local`
+- Browser Extension Manifest V3 (Chrome and Firefox compatible)
+- No backend - all data in `chrome.storage.local` / `browser.storage.local`
 - Resolves handles to DIDs via `com.atproto.identity.resolveHandle`
 - Caches DID resolutions to minimize API calls
 - MutationObserver for SPA navigation
+- Handle change detection (warns if handle→DID mapping changed since assignment)
 
 ## Credits
 
