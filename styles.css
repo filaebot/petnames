@@ -28,6 +28,26 @@
   font-weight: 400;
 }
 
+/* Warning badge for handle takeover detection */
+.petname-badge-warning {
+  background: linear-gradient(135deg, #6b4a1a, #4e3b2d);
+  border-color: rgba(247, 200, 100, 0.3);
+  animation: petname-warning-pulse 2s ease-in-out infinite;
+}
+
+.petname-badge-warning::before {
+  content: '⚠️ ~';
+}
+
+.petname-badge-warning:hover {
+  background: linear-gradient(135deg, #805c20, #5c4636);
+}
+
+@keyframes petname-warning-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(247, 200, 100, 0.3); }
+  50% { box-shadow: 0 0 0 4px rgba(247, 200, 100, 0); }
+}
+
 /* Context menu for assigning petnames */
 .petname-menu {
   position: fixed;

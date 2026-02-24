@@ -7,19 +7,39 @@
 
 // Cache: handle -> DID
 const didCache = new Map();
-// Cache: DID -> petname (loaded from storage)
+// Cache: DID -> petname data (loaded from storage)
+// Format: { petname, originalHandle, assignedAt }
 let petnames = {};
 // Current menu element
 let activeMenu = null;
+// Track detected handle changes
+const handleChanges = new Set();
 
 // Load petnames from storage
 async function loadPetnames() {
   return new Promise((resolve) => {
     chrome.storage.local.get(['petnames'], (result) => {
-      petnames = result.petnames || {};
+      const raw = result.petnames || {};
+      // Migrate old format { did: "name" } to new { did: { petname: "name", ... } }
+      petnames = {};
+      for (const [did, value] of Object.entries(raw)) {
+        if (typeof value === 'string') {
+          // Old format - migrate
+          petnames[did] = { petname: value, originalHandle: null, assignedAt: null };
+        } else {
+          // New format
+          petnames[did] = value;
+        }
+      }
       resolve(petnames);
     });
   });
+}
+
+// Helper to get petname string
+function getPetname(did) {
+  const data = petnames[did];
+  return data ? (typeof data === 'string' ? data : data.petname) : null;
 }
 
 // Save petnames to storage
@@ -48,13 +68,30 @@ async function resolveDID(handle) {
   }
 }
 
+// Check if handle has changed since petname was assigned
+function checkHandleChange(did, currentHandle) {
+  const data = petnames[did];
+  if (!data || !data.originalHandle) return false;
+  // Compare ignoring case
+  return data.originalHandle.toLowerCase() !== currentHandle.toLowerCase();
+}
+
 // Create petname badge element
 function createBadge(did, petname, handle) {
   const badge = document.createElement('span');
-  badge.className = 'petname-badge';
+  const hasChanged = checkHandleChange(did, handle);
+
+  badge.className = 'petname-badge' + (hasChanged ? ' petname-badge-warning' : '');
   badge.textContent = petname;
   badge.dataset.did = did;
   badge.dataset.original = '@' + handle;
+
+  if (hasChanged) {
+    const data = petnames[did];
+    badge.title = `⚠️ Handle changed! Was @${data.originalHandle}, now @${handle}`;
+    handleChanges.add(did);
+  }
+
   badge.addEventListener('click', (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -85,7 +122,7 @@ function showMenu(did, handle, anchor) {
   const menu = document.createElement('div');
   menu.className = 'petname-menu';
 
-  const currentPetname = petnames[did] || '';
+  const currentPetname = getPetname(did) || '';
 
   menu.innerHTML = `
     <div class="petname-menu-header">Assign Petname</div>
@@ -116,7 +153,13 @@ function showMenu(did, handle, anchor) {
   menu.querySelector('.petname-menu-btn-save').addEventListener('click', async () => {
     const newPetname = input.value.trim();
     if (newPetname) {
-      petnames[did] = newPetname;
+      const existingData = petnames[did];
+      petnames[did] = {
+        petname: newPetname,
+        // Keep original handle from first assignment, or set it now
+        originalHandle: existingData?.originalHandle || handle,
+        assignedAt: existingData?.assignedAt || new Date().toISOString()
+      };
       await savePetnames();
       closeMenu();
       scanPage(); // Re-scan to update badges
@@ -218,9 +261,10 @@ async function scanPage() {
     element.dataset.petnameDid = did;
     element.dataset.petnameTarget = 'true';
 
-    if (petnames[did]) {
+    const petname = getPetname(did);
+    if (petname) {
       // Has petname - show badge
-      const badge = createBadge(did, petnames[did], handle);
+      const badge = createBadge(did, petname, handle);
       element.after(badge);
     } else {
       // No petname - show add button on hover

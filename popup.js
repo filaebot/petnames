@@ -9,11 +9,26 @@ let handles = {}; // did -> handle cache
 async function loadPetnames() {
   return new Promise((resolve) => {
     chrome.storage.local.get(['petnames', 'handleCache'], (result) => {
-      petnames = result.petnames || {};
+      const raw = result.petnames || {};
+      // Migrate old format { did: "name" } to new { did: { petname: "name", ... } }
+      petnames = {};
+      for (const [did, value] of Object.entries(raw)) {
+        if (typeof value === 'string') {
+          petnames[did] = { petname: value, originalHandle: null, assignedAt: null };
+        } else {
+          petnames[did] = value;
+        }
+      }
       handles = result.handleCache || {};
       resolve();
     });
   });
+}
+
+// Helper to get petname string
+function getPetname(did) {
+  const data = petnames[did];
+  return data ? (typeof data === 'string' ? data : data.petname) : null;
 }
 
 // Save petnames to storage
@@ -67,13 +82,13 @@ async function renderList(filter = '') {
 
   // Sort by petname
   const sorted = dids.sort((a, b) => {
-    return petnames[a].toLowerCase().localeCompare(petnames[b].toLowerCase());
+    return getPetname(a).toLowerCase().localeCompare(getPetname(b).toLowerCase());
   });
 
   // Filter
   const filtered = filter
     ? sorted.filter(did => {
-        const petname = petnames[did].toLowerCase();
+        const petname = getPetname(did).toLowerCase();
         const handle = (handles[did] || '').toLowerCase();
         const q = filter.toLowerCase();
         return petname.includes(q) || handle.includes(q);
@@ -98,10 +113,15 @@ async function renderList(filter = '') {
     item.className = 'petname-item';
 
     const handle = await resolveHandle(did);
+    const data = petnames[did];
+    const hasChanged = data.originalHandle && data.originalHandle.toLowerCase() !== handle.toLowerCase();
 
     item.innerHTML = `
-      <span class="petname-item-name">${escapeHtml(petnames[did])}</span>
-      <span class="petname-item-handle">@${escapeHtml(handle)}</span>
+      <span class="petname-item-name">${escapeHtml(getPetname(did))}</span>
+      <span class="petname-item-handle ${hasChanged ? 'petname-item-warning' : ''}">
+        ${hasChanged ? '⚠️ ' : ''}@${escapeHtml(handle)}
+        ${hasChanged ? `<span class="petname-item-was">(was @${escapeHtml(data.originalHandle)})</span>` : ''}
+      </span>
       <span class="petname-item-remove" data-did="${did}">×</span>
     `;
 
@@ -167,9 +187,21 @@ async function importPetnames(file) {
 
         // Merge with existing (imported entries overwrite conflicts)
         let imported = 0;
-        for (const [did, petname] of Object.entries(data.petnames)) {
-          if (did.startsWith('did:') && typeof petname === 'string' && petname.trim()) {
-            petnames[did] = petname.trim();
+        for (const [did, value] of Object.entries(data.petnames)) {
+          if (!did.startsWith('did:')) continue;
+
+          // Handle both old format (string) and new format (object)
+          if (typeof value === 'string' && value.trim()) {
+            // Old format
+            petnames[did] = { petname: value.trim(), originalHandle: null, assignedAt: null };
+            imported++;
+          } else if (typeof value === 'object' && value.petname) {
+            // New format
+            petnames[did] = {
+              petname: value.petname.trim(),
+              originalHandle: value.originalHandle || null,
+              assignedAt: value.assignedAt || null
+            };
             imported++;
           }
         }

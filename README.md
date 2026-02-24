@@ -14,7 +14,7 @@ Instead of everyone using the same handles, you maintain your own private namesp
 
 **Display names are chosen by them. Petnames are chosen by you.**
 
-- **Handle takeover protection**: You're tracking the DID, not the handle. If someone loses their domain, your petname still identifies them.
+- **Handle takeover detection**: When you assign a petname, the extension remembers which handle pointed to that DID. If the handle later resolves to a different DID (potential takeover), you'll see a ⚠️ warning.
 - **Your mental model**: Name people how you think of them - "crypto-alice" or "alice-from-conf" instead of generic "Alice".
 - **Context preservation**: Even if their display name changes, yours doesn't.
 
