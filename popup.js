@@ -131,6 +131,71 @@ function escapeHtml(str) {
   return div.innerHTML;
 }
 
+// Export petnames as JSON
+function exportPetnames() {
+  const data = {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    petnames: petnames,
+    handles: handles
+  };
+  const json = JSON.stringify(data, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `petnames-${new Date().toISOString().split('T')[0]}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// Import petnames from JSON
+async function importPetnames(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const data = JSON.parse(e.target.result);
+
+        // Validate structure
+        if (!data.petnames || typeof data.petnames !== 'object') {
+          throw new Error('Invalid file: missing petnames object');
+        }
+
+        // Merge with existing (imported entries overwrite conflicts)
+        let imported = 0;
+        for (const [did, petname] of Object.entries(data.petnames)) {
+          if (did.startsWith('did:') && typeof petname === 'string' && petname.trim()) {
+            petnames[did] = petname.trim();
+            imported++;
+          }
+        }
+
+        // Also merge handle cache if present
+        if (data.handles && typeof data.handles === 'object') {
+          for (const [did, handle] of Object.entries(data.handles)) {
+            if (did.startsWith('did:') && typeof handle === 'string') {
+              handles[did] = handle;
+            }
+          }
+        }
+
+        await savePetnames();
+        chrome.storage.local.set({ handleCache: handles });
+
+        resolve(imported);
+      } catch (err) {
+        reject(err);
+      }
+    };
+    reader.onerror = () => reject(new Error('Failed to read file'));
+    reader.readAsText(file);
+  });
+}
+
 // Initialize
 document.addEventListener('DOMContentLoaded', async () => {
   await loadPetnames();
@@ -139,5 +204,31 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Search
   document.getElementById('search').addEventListener('input', (e) => {
     renderList(e.target.value);
+  });
+
+  // Export button
+  document.getElementById('export-btn').addEventListener('click', () => {
+    if (Object.keys(petnames).length === 0) {
+      alert('No petnames to export.');
+      return;
+    }
+    exportPetnames();
+  });
+
+  // Import input
+  document.getElementById('import-input').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    try {
+      const imported = await importPetnames(file);
+      await renderList();
+      alert(`Imported ${imported} petname(s).`);
+    } catch (err) {
+      alert(`Import failed: ${err.message}`);
+    }
+
+    // Reset input so same file can be imported again
+    e.target.value = '';
   });
 });

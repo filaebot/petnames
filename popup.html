@@ -191,6 +191,41 @@
       color: #666;
       font-size: 11px;
     }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin-bottom: 8px;
+    }
+
+    .action-btn {
+      background: #1a1a2e;
+      border: 1px solid #333;
+      border-radius: 6px;
+      color: #a8a8b8;
+      font-size: 11px;
+      padding: 6px 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .action-btn:hover {
+      background: #2a2a4e;
+      border-color: #4a1a6b;
+      color: #fff;
+    }
+
+    .action-btn.import {
+      position: relative;
+    }
+
+    .action-btn.import input {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -219,6 +254,13 @@
   </div>
 
   <footer>
+    <div class="actions">
+      <button class="action-btn" id="export-btn">Export</button>
+      <label class="action-btn import">
+        Import
+        <input type="file" id="import-input" accept=".json">
+      </label>
+    </div>
     <a href="https://bsky.app" target="_blank">Open Bluesky</a>
     <a href="https://www.skyhunter.com/marcs/petnames/IntroPetNames.html" target="_blank" class="theory-link">
       What are petnames?

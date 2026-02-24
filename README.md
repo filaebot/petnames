@@ -45,6 +45,11 @@ Instead of everyone using the same handles, you maintain your own private namesp
 - Hover to see their original handle
 - Click to edit or remove the petname
 
+**Export/Import:**
+- Click **Export** to download your petnames as JSON
+- Click **Import** to restore from a backup file
+- Useful for syncing across browsers or backing up before reinstalling
+
 ## How It Works
 
 1. Content script scans Bluesky for handles

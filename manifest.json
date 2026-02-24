@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Petnames for Bluesky",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Assign personal names to Bluesky users. Your namespace, your mental model.",
   "permissions": ["storage"],
   "host_permissions": ["https://bsky.app/*", "https://public.api.bsky.app/*"],
